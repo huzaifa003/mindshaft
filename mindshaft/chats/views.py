@@ -1,6 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.exceptions import PermissionDenied
 from rest_framework import status
 from django.shortcuts import get_object_or_404
 from .models import Chat, Message, ChatParticipant
@@ -41,43 +42,56 @@ class ChatMessagesView(APIView):
 
 class CreateChatView(APIView):
     """
-    View to create a new chat.
+    View to create a new chat with the logged-in user as the owner.
     """
     permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
-        serializer = CreateChatSerializer(data=request.data)
+        # Add the logged-in user as the owner of the chat
+        chat_data = request.data.copy()
+        chat_data['user'] = request.user.id  # Set the logged-in user as the chat owner
+        print(chat_data)
+        serializer = CreateChatSerializer(data=chat_data)
         if serializer.is_valid():
-            chat = serializer.save()
-            
-            # Add the authenticated user as a participant if not already included
-            participant_ids = request.data.get('participants', [])
-            if request.user.id not in participant_ids:
-                participant_ids.append(request.user.id)
-            
-            participants = User.objects.filter(id__in=participant_ids)
-            for participant in participants:
-                ChatParticipant.objects.create(chat=chat, user=participant)
+            chat = serializer.save(user=request.user)
 
-            return Response(serializer.data, status=201)
+            # Automatically add the logged-in user as a participant
+            ChatParticipant.objects.create(chat=chat, user=request.user)
+
+            return Response({
+                'id': chat.id,
+                'name': chat.name,
+                'owner': request.user.email,
+                'participants': [request.user.email]  # Default participant list with the owner
+            }, status=201)
         return Response(serializer.errors, status=400)
 
 
 class AddMessageView(APIView):
     """
-    View to add a message to a chat.
+    View to add a message to a chat owned by the logged-in user.
     """
     permission_classes = [IsAuthenticated]
 
     def post(self, request, chat_id, *args, **kwargs):
-        chat = get_object_or_404(Chat, id=chat_id)
+        try:
+            chat = Chat.objects.get(id=chat_id, user=request.user)
+        except Chat.DoesNotExist:
+            raise PermissionDenied("You do not have permission to add messages to this chat.")
 
-        # Ensure the user is a participant of the chat
-        if not chat.participants.filter(user=request.user).exists():
-            return Response({"error": "You are not a participant of this chat."}, status=403)
+        # Add the message to the chat
+        message_data = request.data.copy()
+        message_data['chat'] = chat.id
+        message_data['user'] = request.user.id
 
-        serializer = AddMessageSerializer(data=request.data)
+        serializer = MessageSerializer(data=message_data)
         if serializer.is_valid():
-            serializer.save(chat=chat, user=request.user)
-            return Response(serializer.data, status=201)
+            message = serializer.save()
+            return Response({
+                'id': message.id,
+                'chat': chat.id,
+                'user': request.user.email,
+                'content': message.content,
+                'created_at': message.created_at
+            }, status=201)
         return Response(serializer.errors, status=400)

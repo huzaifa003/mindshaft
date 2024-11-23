@@ -1,11 +1,14 @@
 from django.db import models
 from django.conf import settings  # Import AUTH_USER_MODEL dynamically
-
+# Attach the method to the custom user model dynamically
+from django.contrib.auth import get_user_model
+UserModel = get_user_model()  # Dynamically fetch the custom user model
 
 class Chat(models.Model):
     """
     Represents a chat session or thread.
     """
+    user = models.ForeignKey(UserModel, related_name="owned_chats", on_delete=models.CASCADE)
     name = models.CharField(max_length=255, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -67,7 +70,5 @@ def get_all_user_chats(self):
     return Chat.objects.filter(participants__user=self).distinct()
 
 
-# Attach the method to the custom user model dynamically
-from django.contrib.auth import get_user_model
-UserModel = get_user_model()  # Dynamically fetch the custom user model
+
 UserModel.add_to_class("get_all_user_chats", get_all_user_chats)
