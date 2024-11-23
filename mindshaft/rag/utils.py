@@ -8,12 +8,13 @@ from langchain.document_loaders import PyPDFLoader
 
 # Directory to store Chroma DB
 CHROMA_DB_DIR = os.path.join(settings.BASE_DIR, 'rag', 'chroma_db')
-os.makedirs(CHROMA_DB_DIR, exist_ok=True)
+
 
 def ingest_documents():
     """
     Process uploaded documents, extract text, split into chunks, create embeddings, and store in Chroma DB.
     """
+    os.makedirs(CHROMA_DB_DIR, exist_ok=True)
     documents = []
     for doc in Document.objects.all():
         file_path = doc.file.path

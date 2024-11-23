@@ -11,7 +11,11 @@ from rag.utils import get_relevant_context
 from langchain.llms import OpenAI
 from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
-
+from langchain.chat_models import ChatOpenAI
+import os
+# Chroma DB Directory
+CHROMA_DB_DIR = os.path.join(settings.BASE_DIR, 'rag', 'chroma_db')
+os.environ["OPENAI_API_KEY"]=settings.OPENAI_API_KEY
 
 class UserChatsView(APIView):
     """
@@ -105,32 +109,37 @@ class AddMessageView(APIView):
                 )
 
             return Response({
-                'id': user_message.id,
-                'chat': chat.id,
-                'user': request.user.email,
-                'content': user_message.content,
-                'ai_response': ai_response,  # Include AI response in the API response
-                'created_at': user_message.created_at
+                "id": user_message.id,
+                "chat": chat.id,
+                "user": request.user.email,
+                "content": user_message.content,
+                "ai_response": ai_response,  # Include AI response in the API response
+                "created_at": user_message.created_at
             }, status=201)
         return Response(serializer.errors, status=400)
 
     def generate_ai_response(self, user_message, chat):
         """
-        Generate an AI response using LangChain and Chroma DB.
+        Generate an AI response using LangChain's RunnableSequence with ChatOpenAI.
         """
         try:
-            # Initialize the OpenAI LLM
-            llm = OpenAI(
+            # Initialize the OpenAI Chat model
+            chat_model = ChatOpenAI(
                 temperature=0.1,
                 openai_api_key=settings.OPENAI_API_KEY,
-                model_name='gpt-4o-mini'
+                model="gpt-4o-mini"
             )
 
-            # Retrieve relevant context
-            context = get_relevant_context(user_message)
+            # Check if Chroma DB exists and get context if available
+            if os.path.exists(CHROMA_DB_DIR):
+                context = get_relevant_context(user_message)
+            else:
+                context = "No relevant context available."
 
-            # Construct the prompt
-            prompt_template = """
+            # Define the prompt template
+            prompt_template = PromptTemplate(
+                input_variables=["context", "history", "user_message"],
+                template="""
 You are a compassionate mental health professional helping a client. Do not suggest any medicines.
 Use the following context to inform your response, if relevant:
 
@@ -140,25 +149,23 @@ Conversation History:
 {history}
 Client: {user_message}
 Therapist:"""
-
-            prompt = PromptTemplate(
-                input_variables=["context", "history", "user_message"],
-                template=prompt_template
             )
+
+            # Create the sequence
+            chain = prompt_template | chat_model
 
             # Get conversation history
             history = self.get_conversation_history(chat)
 
-            # Create the LLM Chain
-            chain = LLMChain(
-                llm=llm,
-                prompt=prompt
-            )
-
-            # Generate the AI response
-            response = chain.run(context=context, history=history, user_message=user_message)
-
-            return response.strip()
+            # Run the chain with the provided inputs
+            inputs = {
+                "context": context,
+                "history": history,
+                "user_message": user_message
+            }
+            response = chain.invoke(inputs)
+            print(response)
+            return response.content.strip()  # Ensure a clean response
         except Exception as e:
             print(f"AI response generation error: {e}")
             return "I'm sorry, but I'm unable to provide a response at this time."
@@ -167,7 +174,7 @@ Therapist:"""
         """
         Retrieve the conversation history for the chat.
         """
-        messages = Message.objects.filter(chat=chat).order_by('created_at')
+        messages = Message.objects.filter(chat=chat).order_by("created_at")
         history = ""
         for msg in messages:
             sender = "Client" if msg.user else "Therapist"
