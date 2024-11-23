@@ -22,7 +22,7 @@ def ingest_documents():
         documents.extend(pages)
 
     if documents:
-        embeddings = OpenAIEmbeddings(openai_api_key=settings.OPENAI_API_KEY)
+        embeddings = OpenAIEmbeddings(openai_api_key=settings.OPENAI_API_KEY, model='text-embedding-ada-002')
         vector_store = Chroma(
             collection_name='documents',
             persist_directory=CHROMA_DB_DIR,
@@ -41,7 +41,7 @@ def get_relevant_context(query):
     """
     Retrieve relevant context from Chroma DB based on the user's message.
     """
-    embeddings = OpenAIEmbeddings(openai_api_key=settings.OPENAI_API_KEY)
+    embeddings = OpenAIEmbeddings(openai_api_key=settings.OPENAI_API_KEY, model='text-embedding-ada-002')
     vector_store = Chroma(
         collection_name='documents',
         persist_directory=CHROMA_DB_DIR,

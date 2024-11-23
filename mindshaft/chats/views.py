@@ -121,7 +121,7 @@ class AddMessageView(APIView):
         try:
             # Initialize the OpenAI LLM
             llm = OpenAI(
-                temperature=0.7,
+                temperature=0.1,
                 openai_api_key=settings.OPENAI_API_KEY,
                 model_name='gpt-4o-mini'
             )

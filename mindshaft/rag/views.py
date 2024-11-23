@@ -1,7 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import IsAdminUser
+from rest_framework.permissions import IsAuthenticated
 from .models import Document, IngestionStatus
 from .serializers import DocumentSerializer
 from .utils import ingest_documents
@@ -10,7 +10,7 @@ class DocumentUploadView(APIView):
     """
     View to upload new documents.
     """
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
         # Check if ingestion is in progress
@@ -54,7 +54,7 @@ class DocumentDeleteView(APIView):
     """
     View to delete a document.
     """
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAuthenticated]
 
     def delete(self, request, pk):
         # Check if ingestion is in progress
@@ -78,7 +78,6 @@ class DocumentDeleteView(APIView):
         ingestion_status.save()
 
         try:
-            from .utils import ingest_documents
             ingest_documents()
         finally:
             ingestion_status.is_ingesting = False
