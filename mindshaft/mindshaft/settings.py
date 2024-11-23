@@ -40,8 +40,9 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework.authtoken",
     "mindshaft",
-    "chats",
     "users",
+    "chats",
+    
 ]
 
 REST_FRAMEWORK = {
