@@ -12,23 +12,35 @@ CHROMA_DB_DIR = os.path.join(settings.BASE_DIR, 'rag', 'chroma_db')
 
 def ingest_documents():
     """
-    Process uploaded documents, extract text, split into chunks, create embeddings, and store in Chroma DB.
+    Process uploaded documents, extract text, split into chunks, associate titles, create embeddings, and store in Chroma DB.
     """
     os.makedirs(CHROMA_DB_DIR, exist_ok=True)
     documents = []
+
     for doc in Document.objects.all():
         file_path = doc.file.path
+        id = str(doc.id)  # Retrieve the id from the database
         loader = PyPDFLoader(file_path)
         pages = loader.load_and_split()
+
+        # Add the id as metadata to each page
+        for page in pages:
+            if isinstance(page, dict):
+                page['metadata'] = {'id': id}
+            elif hasattr(page, 'metadata'):
+                page.metadata = {'id': id}
+
         documents.extend(pages)
 
     if documents:
+        # Initialize embeddings and Chroma vector store
         embeddings = OpenAIEmbeddings(openai_api_key=settings.OPENAI_API_KEY, model='text-embedding-ada-002')
         vector_store = Chroma(
             collection_name='documents',
             persist_directory=CHROMA_DB_DIR,
             embedding_function=embeddings
         )
+        # Add documents with titles to the vector store
         vector_store.add_documents(documents)
     else:
         # If no documents, clear the vector store
@@ -36,6 +48,7 @@ def ingest_documents():
             import shutil
             shutil.rmtree(CHROMA_DB_DIR)
         print("No documents to ingest.")
+
 
 
 def get_relevant_context(query):

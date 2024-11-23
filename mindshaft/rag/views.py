@@ -5,7 +5,10 @@ from rest_framework.permissions import IsAuthenticated
 from .models import Document, IngestionStatus
 from .serializers import DocumentSerializer
 from .utils import ingest_documents
-
+from langchain.vectorstores import Chroma
+import os
+from django.conf import settings
+CHROMA_DB_DIR = os.path.join(settings.BASE_DIR, 'rag', 'chroma_db')
 class DocumentUploadView(APIView):
     """
     View to upload new documents.
@@ -64,10 +67,21 @@ class DocumentDeleteView(APIView):
 
         try:
             document = Document.objects.get(pk=pk)
-            document.delete()
+            if not document:
+                return Response({'error': 'Document not found.'}, status=status.HTTP_404_NOT_FOUND)
 
             # Start ingestion in a new thread
-            ingest_documents()
+            if not os.path.exists(CHROMA_DB_DIR):
+                self.run_ingestion()
+
+            vector_store = Chroma(
+                collection_name='documents',
+                persist_directory=CHROMA_DB_DIR
+            )
+            vector_store.delete([str(pk)])
+
+            os.remove(document.file.path)
+            document.delete()
             return Response({'message': 'Document deleted successfully. Ingestion completed.'}, status=status.HTTP_200_OK)
         except Document.DoesNotExist:
             return Response({'error': 'Document not found.'}, status=status.HTTP_404_NOT_FOUND)
@@ -82,3 +96,15 @@ class DocumentDeleteView(APIView):
         finally:
             ingestion_status.is_ingesting = False
             ingestion_status.save()
+
+
+class DocumentsListView(APIView):
+    """
+    View to list all documents.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        documents = Document.objects.all()
+        serializer = DocumentSerializer(documents, many=True)
+        return Response(serializer.data)
