@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "rest_framework.authtoken",
+    "mindshaft",
     "chats",
     "users",
 ]
@@ -90,7 +91,7 @@ DATABASES = {
     }
 }
 
-AUTH_USER_MODEL = 'mindshaft.CustomUser'
+AUTH_USER_MODEL = "users.CustomUser"  # Ensure the app name and model are correct
 
 
 # Password validation
