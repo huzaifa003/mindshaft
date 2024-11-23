@@ -16,4 +16,5 @@ urlpatterns = [
     # App-specific routes
     path("api/users/", include("users.urls")),  # Include URLs from the users app
     path("api/chats/", include("chats.urls")),  # Include URLs from the chats app
+    path('api/rag/', include('rag.urls')),  # Include URLs from the rag app
 ]

@@ -6,7 +6,11 @@ from rest_framework import status
 from django.shortcuts import get_object_or_404
 from .models import Chat, Message, ChatParticipant
 from .serializers import ChatSerializer, MessageSerializer, CreateChatSerializer, AddMessageSerializer
-from django.contrib.auth.models import User
+from django.conf import settings
+from rag.utils import get_relevant_context
+from langchain.llms import OpenAI
+from langchain.chains import LLMChain
+from langchain.prompts import PromptTemplate
 
 
 class UserChatsView(APIView):
@@ -69,7 +73,7 @@ class CreateChatView(APIView):
 
 class AddMessageView(APIView):
     """
-    View to add a message to a chat owned by the logged-in user.
+    View to add a message to a chat owned by the logged-in user and generate an AI response.
     """
     permission_classes = [IsAuthenticated]
 
@@ -79,19 +83,93 @@ class AddMessageView(APIView):
         except Chat.DoesNotExist:
             raise PermissionDenied("You do not have permission to add messages to this chat.")
 
-        # Add the message to the chat
+        # Add the user's message to the chat
         message_data = request.data.copy()
         message_data['chat'] = chat.id
         message_data['user'] = request.user.id
 
         serializer = MessageSerializer(data=message_data)
         if serializer.is_valid():
-            message = serializer.save()
+            user_message = serializer.save()
+
+            # Generate AI response
+            ai_response = self.generate_ai_response(user_message.content, chat)
+
+            # Save AI response as a message
+            if ai_response:
+                Message.objects.create(
+                    chat=chat,
+                    user=None,  # No user for AI messages
+                    content=ai_response,
+                    is_system_message=True
+                )
+
             return Response({
-                'id': message.id,
+                'id': user_message.id,
                 'chat': chat.id,
                 'user': request.user.email,
-                'content': message.content,
-                'created_at': message.created_at
+                'content': user_message.content,
+                'ai_response': ai_response,  # Include AI response in the API response
+                'created_at': user_message.created_at
             }, status=201)
         return Response(serializer.errors, status=400)
+
+    def generate_ai_response(self, user_message, chat):
+        """
+        Generate an AI response using LangChain and Chroma DB.
+        """
+        try:
+            # Initialize the OpenAI LLM
+            llm = OpenAI(
+                temperature=0.7,
+                openai_api_key=settings.OPENAI_API_KEY,
+                model_name='gpt-4o-mini'
+            )
+
+            # Retrieve relevant context
+            context = get_relevant_context(user_message)
+
+            # Construct the prompt
+            prompt_template = """
+You are a compassionate mental health professional helping a client. Do not suggest any medicines.
+Use the following context to inform your response, if relevant:
+
+{context}
+
+Conversation History:
+{history}
+Client: {user_message}
+Therapist:"""
+
+            prompt = PromptTemplate(
+                input_variables=["context", "history", "user_message"],
+                template=prompt_template
+            )
+
+            # Get conversation history
+            history = self.get_conversation_history(chat)
+
+            # Create the LLM Chain
+            chain = LLMChain(
+                llm=llm,
+                prompt=prompt
+            )
+
+            # Generate the AI response
+            response = chain.run(context=context, history=history, user_message=user_message)
+
+            return response.strip()
+        except Exception as e:
+            print(f"AI response generation error: {e}")
+            return "I'm sorry, but I'm unable to provide a response at this time."
+
+    def get_conversation_history(self, chat):
+        """
+        Retrieve the conversation history for the chat.
+        """
+        messages = Message.objects.filter(chat=chat).order_by('created_at')
+        history = ""
+        for msg in messages:
+            sender = "Client" if msg.user else "Therapist"
+            history += f"{sender}: {msg.content}\n"
+        return history
