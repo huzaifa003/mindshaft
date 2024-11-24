@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 from decouple import config
 from pathlib import Path
+from datetime import timedelta
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -79,6 +81,15 @@ TEMPLATES = [
         },
     },
 ]
+
+# Update the JWT settings
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=6),  # Access token valid for 6 hours
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),  # Refresh token valid for 7 days
+    'ROTATE_REFRESH_TOKENS': True,               # Issue a new refresh token with each use
+    'BLACKLIST_AFTER_ROTATION': True,            # Blacklist old refresh tokens after use
+    'AUTH_HEADER_TYPES': ('Bearer',),            # Use "Bearer" instead of "JWT"
+}
 
 WSGI_APPLICATION = "mindshaft.wsgi.application"
 
