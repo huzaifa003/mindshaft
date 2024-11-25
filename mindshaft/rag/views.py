@@ -20,9 +20,10 @@ class DocumentUploadView(APIView):
 
     def post(self, request):
         # Check if ingestion is in progress
-        ingestion_status = IngestionStatus.get_status()
-        if ingestion_status.is_ingesting:
-            return Response({'error': 'Ingestion is in progress. Please wait until it completes.'}, status=status.HTTP_400_BAD_REQUEST)
+        #//TODO ENable this
+        # ingestion_status = IngestionStatus.get_status()
+        # if ingestion_status.is_ingesting:
+        #     return Response({'error': 'Ingestion is in progress. Please wait until it completes.'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Handle multiple files
         files = request.FILES.getlist('file')
