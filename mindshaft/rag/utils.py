@@ -7,58 +7,80 @@ from langchain_openai import OpenAIEmbeddings
 from django.conf import settings
 from .models import Document  # Import your Django model
 from langchain.schema import Document as LangChainDocument  # Rename to avoid conflicts
+import tiktoken
 
 # Directory to store Chroma DB
 CHROMA_DB_DIR = os.path.join(settings.BASE_DIR, 'rag', 'chroma_db')
 
+# Define the maximum tokens allowed per chunk
+MAX_TOKENS = 1000  # Adjust as needed
+
+def chunk_text_with_tiktoken(text, max_tokens=MAX_TOKENS, model='text-embedding-ada-002'):
+    """
+    Use tiktoken to split text into chunks of specified token size.
+    """
+    encoding = tiktoken.encoding_for_model(model)
+    tokens = encoding.encode(text)
+    # Split tokens into chunks of max_tokens
+    for i in range(0, len(tokens), max_tokens):
+        chunk_tokens = tokens[i:i+max_tokens]
+        chunk_text = encoding.decode(chunk_tokens)
+        yield chunk_text
+
 def process_document(doc):
-    """Process a single document: extract text, split into pages, and add metadata."""
+    """Process a single document: extract text, split into pages, then chunk each page using tiktoken."""
     try:
         file_path = doc.file.path
         doc_id = str(doc.id)
         loader = PyPDFLoader(file_path)
-        pages = loader.load_and_split()
+        pages = loader.load()  # Load pages without pre-splitting
 
-        # Add the doc_id as metadata to each page
+        processed_pages = []
         for page in pages:
-            if isinstance(page, dict):
-                page['metadata'] = {'id': doc_id}
-            elif hasattr(page, 'metadata'):
-                page.metadata = {'id': doc_id}
+            # page.page_content should have the text of the page
+            page_text = page.page_content
+            # Chunk the page text using tiktoken
+            for chunk in chunk_text_with_tiktoken(page_text, max_tokens=MAX_TOKENS):
+                # Create a new LangChainDocument with the chunk
+                chunked_page = LangChainDocument(
+                    page_content=chunk,
+                    metadata={'id': doc_id, 'source_file': doc.file.name}
+                )
+                processed_pages.append(chunked_page)
 
-        print(f"Processed document ID {doc_id} with {len(pages)} pages.")
-        return pages
+        print(f"Processed document ID {doc_id} into {len(processed_pages)} chunked pages.")
+        return processed_pages
     except Exception as e:
         print(f"Error processing document ID {doc.id}: {e}")
         return []
 
-def ingest_documents(batch_size=10, max_threads=4):
+def ingest_documents(max_threads=4):
     """
-    Process uploaded documents in parallel, extract text, split into chunks, create embeddings, and store in Chroma DB.
+    Process uploaded documents in parallel, extract text, chunk with tiktoken, 
+    create embeddings, and store in Chroma DB immediately after each document is processed.
     """
     os.makedirs(CHROMA_DB_DIR, exist_ok=True)
     all_documents = Document.objects.all()
 
-    # Use ThreadPoolExecutor for parallel processing
-    with ThreadPoolExecutor(max_threads) as executor:
+    documents_added = False
+
+    with ThreadPoolExecutor(max_workers=max_threads) as executor:
         futures = {executor.submit(process_document, doc): doc for doc in all_documents}
-        processed_pages = []
 
         for future in as_completed(futures):
             try:
-                pages = future.result()
-                processed_pages.extend(pages)
+                chunks = future.result()
+                if chunks:
+                    # As soon as we have chunks, add them to Chroma DB
+                    add_documents_to_chroma(chunks)
+                    print(f"Added {len(chunks)} chunks to Chroma DB.")
+                    documents_added = True
             except Exception as e:
                 doc = futures[future]
                 print(f"Error processing document ID {doc.id}: {e}")
 
-    if processed_pages:
-        # Process in batches to limit memory usage
-        for i in range(0, len(processed_pages), batch_size):
-            batch = processed_pages[i:i + batch_size]
-            add_documents_to_chroma(batch)
-    else:
-        # If no documents, clear the vector store
+    if not documents_added:
+        # If no documents were processed or no chunks created, clear the vector store
         clear_chroma_db()
 
 def add_documents_to_chroma(documents):
@@ -80,8 +102,6 @@ def clear_chroma_db():
     if os.path.exists(CHROMA_DB_DIR):
         shutil.rmtree(CHROMA_DB_DIR)
     print("No documents to ingest. Cleared Chroma DB.")
-
-
 
 def get_relevant_context(query):
     """
