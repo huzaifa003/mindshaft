@@ -180,3 +180,103 @@ Therapist:"""
             sender = "Client" if msg.user else "Therapist"
             history += f"{sender}: {msg.content}\n"
         return history
+    
+
+
+
+
+#     class AddMessageViewStream(APIView):
+#     """
+#     View to add a message to a chat owned by the logged-in user and generate an AI response with streaming.
+#     """
+#     permission_classes = [IsAuthenticated]
+
+#     def post(self, request, chat_id, *args, **kwargs):
+#         try:
+#             chat = Chat.objects.get(id=chat_id, user=request.user)
+#         except Chat.DoesNotExist:
+#             raise PermissionDenied("You do not have permission to add messages to this chat.")
+
+#         # Add the user's message to the chat
+#         message_data = request.data.copy()
+#         message_data['chat'] = chat.id
+#         message_data['user'] = request.user.id
+
+#         serializer = MessageSerializer(data=message_data)
+#         if serializer.is_valid():
+#             user_message = serializer.save()
+
+#             # Generate streaming AI response
+#             response = self.stream_ai_response(user_message.content, chat)
+
+#             return StreamingHttpResponse(
+#                 response,
+#                 content_type="text/event-stream",
+#                 status=200
+#             )
+#         return Response(serializer.errors, status=400)
+
+#     def stream_ai_response(self, user_message, chat):
+#         """
+#         Stream an AI response using OpenAI's ChatCompletion API.
+#         """
+#         try:
+#             # Initialize the OpenAI API key
+#             openai.api_key = settings.OPENAI_API_KEY
+
+#             # Check if Chroma DB exists and get context if available
+#             if os.path.exists(CHROMA_DB_DIR):
+#                 context = get_relevant_context(user_message)
+#             else:
+#                 context = "No relevant context available."
+
+#             # Get conversation history
+#             history = self.get_conversation_history(chat)
+
+#             # Prepare the prompt
+#             prompt = f"""
+# You are a compassionate mental health professional helping a client. Do not suggest any medicines.
+# Use the following context to inform your response, if relevant:
+
+# {context}
+
+# Conversation History:
+# {history}
+# Client: {user_message}
+# Therapist:"""
+
+#             # Stream the response from OpenAI's ChatCompletion
+#             response = openai.chat.completions.create(
+#                 model="gpt-4o-mini",
+#                 messages=[{"role": "system", "content": prompt}],
+#                 temperature=0.1,
+#                 stream=True
+#             )
+
+#             for chunk in response:
+#                 chunk = chunk.model_dump(mode="json")
+#                 if 'choices' in chunk:
+#                     choice = chunk["choices"][0]
+#                     delta = choice.get("delta", {})
+#                     content = delta.get("content")
+#                     if content:
+#                         yield f"data: {content}\n\n"
+
+#             # Send a stop signal when the response is complete
+#             yield "data: [END OF RESPONSE]\n\n"
+#         except Exception as e:
+#             print(f"AI streaming error: {e}")
+#             yield "data: I'm sorry, but I'm unable to provide a response at this time.\n\n"
+
+#     def get_conversation_history(self, chat):
+#         """
+#         Retrieve the conversation history for the chat.
+#         """
+#         messages = Message.objects.filter(chat=chat).order_by("created_at")
+#         history = ""
+#         for msg in messages:
+#             sender = "Client" if msg.user else "Therapist"
+#             history += f"{sender}: {msg.content}\n"
+#         return history
+
+
