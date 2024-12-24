@@ -126,6 +126,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "users.middleware.ResetDailyLimitMiddleware",
+    "users.middleware.DebugMiddleware",
 ]
 
 ROOT_URLCONF = "mindshaft.urls"
@@ -189,7 +190,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-required_env_vars = ['DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_HOST', 'DB_PORT', 'OPENAI_API_KEY', 'STRIPE_SECRET_KEY', 'STRIPE_PUBLISHABLE_KEY', 'STRIPE_WEBHOOK_SECRET']
+required_env_vars = ['DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_HOST', 'DB_PORT', 'OPENAI_API_KEY', 'STRIPE_SECRET_KEY', 'STRIPE_PUBLISHABLE_KEY', 'STRIPE_WEBHOOK_SECRET', 'STRIPE_SUCCESS_URL', 'STRIPE_FAILURE_URL', 'STRIPE_CANCEL_URL']
 for var in required_env_vars:
     print(f"Checking for environment variable: {var}")
     print(f"Value: {config(var)}")
@@ -211,7 +212,9 @@ OPENAI_API_KEY = config('OPENAI_API_KEY')
 STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY')
 STRIPE_PUBLISHABLE_KEY = config('STRIPE_PUBLISHABLE_KEY')
 STRIPE_WEBHOOK_SECRET = config('STRIPE_WEBHOOK_SECRET')
-
+STRIPE_SUCCESS_URL = config('STRIPE_SUCCESS_URL')
+STRIPE_FAILURE_URL = config('STRIPE_FAILURE_URL')
+STRIPE_CANCEL_URL = config('STRIPE_CANCEL_URL')
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 

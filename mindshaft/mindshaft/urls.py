@@ -18,5 +18,5 @@ urlpatterns = [
     path("api/chats/", include("chats.urls")),  # Include URLs from the chats app
     path('api/rag/', include('rag.urls')),  # Include URLs from the rag app
 
-    path('billing/', include('billing.urls')),
+    path('api/billing/', include('billing.urls')),
 ]

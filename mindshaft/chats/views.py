@@ -93,12 +93,15 @@ class AddMessageView(APIView):
         message_data['chat'] = chat.id
         message_data['user'] = request.user.id
 
+        userObj = request.user
         
 
         serializer = MessageSerializer(data=message_data)
         if serializer.is_valid():
             user_message = serializer.save()
 
+            if not userObj.is_premium and userObj.credits_used_today >= userObj.daily_limit:
+                return Response({'error': 'You have reached your daily limit.'}, status=status.HTTP_400_BAD_REQUEST)
             # Generate AI response
             ai_response = self.generate_ai_response(user_message.content, chat)
     
@@ -108,8 +111,13 @@ class AddMessageView(APIView):
             total_tokens = token_usage['total_tokens']
          
             msg_content = response_json['content'].strip()
-            consume_credits(request.user, total_tokens)
+            creds = consume_credits(request.user, total_tokens)
+            if 'error' in creds:
+                return Response(creds, status=status.HTTP_400_BAD_REQUEST)
 
+            if 'success' not in creds:
+                return Response(creds, status=status.HTTP_400_BAD_REQUEST)
+            
             # Save AI response as a message
             if ai_response:
                 Message.objects.create(
