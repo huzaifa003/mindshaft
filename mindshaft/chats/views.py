@@ -95,13 +95,14 @@ class AddMessageView(APIView):
 
         userObj = request.user
         
+        if not userObj.is_premium and userObj.credits_used_today >= userObj.daily_limit:
+            return Response({'error': 'You have reached your daily limit.'}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = MessageSerializer(data=message_data)
         if serializer.is_valid():
             user_message = serializer.save()
 
-            if not userObj.is_premium and userObj.credits_used_today >= userObj.daily_limit:
-                return Response({'error': 'You have reached your daily limit.'}, status=status.HTTP_400_BAD_REQUEST)
+            
             # Generate AI response
             ai_response = self.generate_ai_response(user_message.content, chat)
     
@@ -203,6 +204,23 @@ Therapist:"""
     
 
 
+class DeleteChatView(APIView):
+    """
+    View to delete a chat owned by the logged-in user.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        try:
+            chat_id = request.data.get('chat_id', None)
+            if not chat_id:
+                return Response({"error": "Chat ID is required."}, status=status.HTTP_400_BAD_REQUEST)
+            chat = Chat.objects.get(id=chat_id, user=request.user)
+        except Chat.DoesNotExist:
+            raise PermissionDenied("You do not have permission to delete this chat.")
+
+        chat.delete()
+        return Response({"message": "Chat deleted successfully."}, status=status.HTTP_200_OK)
 
 
 #     class AddMessageViewStream(APIView):
