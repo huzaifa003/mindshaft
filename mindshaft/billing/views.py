@@ -51,6 +51,9 @@ class CancelSubscriptionView(APIView):
         user = request.user
         try:
             stripe_customer = StripeCustomer.objects.get(user=user)
+            
+            if not stripe_customer.stripe_subscription_id:
+                return Response({'error': 'User not subscribed'}, status=400)
             if stripe_customer.stripe_subscription_id:
                 stripe.Subscription.delete(stripe_customer.stripe_subscription_id)
                 stripe_customer.stripe_subscription_id = None
@@ -62,6 +65,8 @@ class CancelSubscriptionView(APIView):
             return Response({'message': 'Subscription cancelled successfully'})
         except StripeCustomer.DoesNotExist:
             return Response({'error': 'User not subscribed'}, status=400)
+        except Exception as e:
+            return Response({'error': str(e)}, status=400)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
