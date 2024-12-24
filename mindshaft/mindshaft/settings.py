@@ -24,6 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config('SECRET')
 
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
@@ -51,8 +52,63 @@ INSTALLED_APPS = [
     "users",
     "chats",
     "rag",
+    "billing",
     
 ]
+import os
+# Define the list of apps for which dynamic loggers should be created
+APP_LOGGERS = ['users', 'chats', 'billing', 'rag']
+
+# Base logging configuration
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {name} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+    },
+}
+
+# Dynamically add a logger and file handler for each app
+for app in APP_LOGGERS:
+    log_file = os.path.join('logs', f'{app}.log')  # Dynamic log file path
+    os.makedirs(os.path.dirname(log_file), exist_ok=True)  # Ensure the directory exists
+
+    # Add a file handler for the app
+    LOGGING['handlers'][f'file_{app}'] = {
+        'level': 'DEBUG',
+        'class': 'logging.FileHandler',
+        'filename': log_file,
+        'formatter': 'verbose',
+    }
+
+    # Add the app's logger
+    LOGGING['loggers'][app] = {
+        'handlers': ['console', f'file_{app}'],
+        'level': 'DEBUG',
+        'propagate': False,
+    }
+
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
@@ -69,6 +125,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "users.middleware.ResetDailyLimitMiddleware",
 ]
 
 ROOT_URLCONF = "mindshaft.urls"
@@ -132,9 +189,10 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-required_env_vars = ['DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_HOST', 'DB_PORT', 'OPENAI_API_KEY']
+required_env_vars = ['DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_HOST', 'DB_PORT', 'OPENAI_API_KEY', 'STRIPE_SECRET_KEY', 'STRIPE_PUBLISHABLE_KEY', 'STRIPE_WEBHOOK_SECRET']
 for var in required_env_vars:
-    print(config(var))
+    print(f"Checking for environment variable: {var}")
+    print(f"Value: {config(var)}")
     if not config(var):  # Or os.environ.get(var)
         raise EnvironmentError(f"Missing required environment variable: {var}")
 
@@ -150,6 +208,9 @@ DATABASES = {
 }
 
 OPENAI_API_KEY = config('OPENAI_API_KEY')
+STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY')
+STRIPE_PUBLISHABLE_KEY = config('STRIPE_PUBLISHABLE_KEY')
+STRIPE_WEBHOOK_SECRET = config('STRIPE_WEBHOOK_SECRET')
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/

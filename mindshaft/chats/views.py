@@ -5,6 +5,7 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework import status
 from django.shortcuts import get_object_or_404
 from .models import Chat, Message, ChatParticipant
+from users.utils import consume_credits
 from .serializers import ChatSerializer, MessageSerializer, CreateChatSerializer, AddMessageSerializer
 from django.conf import settings
 from rag.utils import get_relevant_context
@@ -92,19 +93,29 @@ class AddMessageView(APIView):
         message_data['chat'] = chat.id
         message_data['user'] = request.user.id
 
+        
+
         serializer = MessageSerializer(data=message_data)
         if serializer.is_valid():
             user_message = serializer.save()
 
             # Generate AI response
             ai_response = self.generate_ai_response(user_message.content, chat)
+    
+            response_json = ai_response.dict()
+            response_metadata = response_json['response_metadata']
+            token_usage = response_metadata['token_usage']
+            total_tokens = token_usage['total_tokens']
+         
+            msg_content = response_json['content'].strip()
+            consume_credits(request.user, total_tokens)
 
             # Save AI response as a message
             if ai_response:
                 Message.objects.create(
                     chat=chat,
                     user=None,  # No user for AI messages
-                    content=ai_response,
+                    content=msg_content,
                     is_system_message=True
                 )
 
@@ -113,8 +124,9 @@ class AddMessageView(APIView):
                 "chat": chat.id,
                 "user": request.user.email,
                 "content": user_message.content,
-                "ai_response": ai_response,  # Include AI response in the API response
-                "created_at": user_message.created_at
+                "ai_response": msg_content,  # Include AI response in the API response
+                "created_at": user_message.created_at,
+                "tokens_used": total_tokens
             }, status=201)
         return Response(serializer.errors, status=400)
 
@@ -165,7 +177,7 @@ Therapist:"""
             }
             response = chain.invoke(inputs)
             print(response)
-            return response.content.strip()  # Ensure a clean response
+            return response  # Ensure a clean response
         except Exception as e:
             print(f"AI response generation error: {e}")
             return "I'm sorry, but I'm unable to provide a response at this time."
