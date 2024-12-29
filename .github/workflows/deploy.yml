@@ -10,17 +10,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Set up SSH for Private Repo
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up SSH
+      uses: webfactory/ssh-agent@v0.7.0
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+    - name: Add GitHub and server to known_hosts
       run: |
-        mkdir -p ~/.ssh
-        echo "${{ secrets.DEPLOY_KEY }}" > ~/.ssh/id_rsa
-        chmod 600 ~/.ssh/id_rsa
         ssh-keyscan -H github.com >> ~/.ssh/known_hosts
         ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
 
     - name: Deploy to Server
       run: |
         ssh -t ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+        # Navigate to /var/www and clone the repository if not already cloned
         cd /var/www
         if [ ! -d "mindshaft" ]; then
             git clone git@github.com:huzaifa003/mindshaft.git
@@ -30,17 +36,26 @@ jobs:
             git pull origin main
         fi
 
+        # Navigate to the cloned repo
         cd /var/www/mindshaft
+
+        # Create virtual environment if it doesn't exist
         if [ ! -d "venv" ]; then
             python3 -m venv venv
         fi
         source venv/bin/activate
+
+        # Install dependencies
         pip install -r requirements.txt
 
+        # Navigate to the folder containing manage.py
         cd /var/www/mindshaft/mindshaft
+
+        # Run migrations and collect static files
         python manage.py migrate
         python manage.py collectstatic --noinput
 
+        # Restart Gunicorn and Nginx
         sudo systemctl restart mindshaft-gunicorn
         sudo systemctl reload nginx
         EOF
