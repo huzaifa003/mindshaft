@@ -26,13 +26,13 @@ SECRET_KEY = config('SECRET')
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 
-ALLOWED_HOSTS = ['145.223.101.34', 'localhost', '127.0.0.1']
 
 # CORS settings
-CORS_ALLOWED_ORIGINS = ['http://localhost:5173', 'http://127.0.0.1:5173', 'http://145.223.101.34']
+ALLOWED_HOSTS = ['api.mindhush.ai', 'www.api.mindhush.ai', '145.223.101.34', 'localhost', 'localhost:5173']
+
 # CORS_ALLOW_CREDENTIALS = True  # Allows cookies and headers like Authorization
 
 
