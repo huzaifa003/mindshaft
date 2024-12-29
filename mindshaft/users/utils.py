@@ -35,7 +35,7 @@ def send_otp_email(email, otp):
     send_mail(subject, message, from_email, [email])
 
 def send_email_verification_email(user):
-    subject = "Email Verification Confirmed from listaro"
+    subject = "Email Verification Confirmed from mindhush"
     message = "Your email has been verified successfully."
     from_email = settings.DEFAULT_FROM_EMAIL
     send_mail(subject, message, from_email, [user.email])
@@ -68,4 +68,3 @@ def send_password_reset_confirmation_email(user : CustomUser):
     from_email = settings.DEFAULT_FROM_EMAIL
     send_mail(subject, message, from_email, [user.email])
 
-    
