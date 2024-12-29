@@ -1,0 +1,42 @@
+name: Deploy Django App
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up SSH
+      uses: webfactory/ssh-agent@v0.7.0
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+    - name: Deploy to Server
+      run: |
+        ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+        cd /var/www/mindshaft || git clone git@github.com:huzaifa003/mindshaft.git /var/www/mindshaft
+        cd /var/www/mindshaft
+        git pull origin main
+        
+        # Set up virtual environment and install dependencies
+        python3 -m venv venv
+        source venv/bin/activate
+        pip install -r requirements.txt
+        
+        # Run migrations and collect static files
+        python manage.py migrate
+        python manage.py collectstatic --noinput
+        
+        # Restart Gunicorn
+        sudo systemctl restart mindshaft-gunicorn
+
+        # Reload Nginx
+        sudo systemctl reload nginx
+        EOF
