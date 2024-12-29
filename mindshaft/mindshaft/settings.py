@@ -216,6 +216,17 @@ STRIPE_WEBHOOK_SECRET = config('STRIPE_WEBHOOK_SECRET')
 STRIPE_SUCCESS_URL = config('STRIPE_SUCCESS_URL')
 STRIPE_FAILURE_URL = config('STRIPE_FAILURE_URL')
 STRIPE_CANCEL_URL = config('STRIPE_CANCEL_URL')
+
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = str(config("EMAIL_HOST", default="smtp.gmail.com"))
+EMAIL_PORT = int(config("EMAIL_PORT", default=587))
+EMAIL_USE_TLS = bool(config("EMAIL_USE_TLS", default=True))
+EMAIL_HOST_USER = str(config("EMAIL_HOST_USER"))
+EMAIL_HOST_PASSWORD = str(config("EMAIL_HOST_PASSWORD"))
+DEFAULT_FROM_EMAIL = str(
+    config("DEFAULT_FROM_EMAIL", default="Your App <your-email@gmail.com>")
+)
+
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
