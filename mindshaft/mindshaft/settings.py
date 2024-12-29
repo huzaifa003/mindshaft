@@ -29,11 +29,11 @@ SECRET_KEY = config('SECRET')
 DEBUG = True
 
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['145.223.101.34']
 
 # CORS settings
-CORS_ALLOWED_ORIGINS = ['http://localhost:5173', 'http://127.0.0.1:5173']
-CORS_ALLOW_CREDENTIALS = True  # Allows cookies and headers like Authorization
+CORS_ALLOWED_ORIGINS = ['http://localhost:5173', 'http://127.0.0.1:5173', 'http://145.223.101.34']
+# CORS_ALLOW_CREDENTIALS = True  # Allows cookies and headers like Authorization
 
 
 # Application definition
@@ -230,7 +230,9 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-STATIC_URL = "static/"
+STATIC_ROOT = BASE_DIR / "mindshaft" / "staticfiles"
+STATIC_URL = "/staticfiles/"
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field

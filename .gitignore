@@ -5,3 +5,4 @@ venv
 mindshaft/rag/chroma_db
 mindshaft/rag/processed_docs
 mindshaft/logs
+**/staticfiles/
