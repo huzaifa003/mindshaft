@@ -4,3 +4,4 @@ venv
 */documents
 mindshaft/rag/chroma_db
 mindshaft/rag/processed_docs
+**/*.log
