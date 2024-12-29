@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Set up SSH
+    - name: Set up SSH for Private Repo
       run: |
         mkdir -p ~/.ssh
         echo "${{ secrets.DEPLOY_KEY }}" > ~/.ssh/id_rsa
