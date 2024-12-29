@@ -31,9 +31,12 @@ DEBUG = False
 
 
 # CORS settings
-ALLOWED_HOSTS = ['api.mindhush.ai', 'www.api.mindhush.ai', '145.223.101.34', 'localhost', 'localhost:5173']
+ALLOWED_HOSTS = ['api.mindhush.ai', 'www.api.mindhush.ai', '145.223.101.34', 'localhost', 'localhost:5173', '127.0.0.1']
+# CORS_ALLOWED_ORIGINS = ['api.mindhush.ai', 'www.api.mindhush.ai', '145.223.101.34', 'localhost', 'localhost:5173', '127.0.0.1']
 
-# CORS_ALLOW_CREDENTIALS = True  # Allows cookies and headers like Authorization
+CORS_ALLOW_ALL_ORIGINS = True
+
+CORS_ALLOW_CREDENTIALS = True  # Allows cookies and headers like Authorization
 
 
 # Application definition

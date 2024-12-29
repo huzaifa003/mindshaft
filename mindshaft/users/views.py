@@ -129,7 +129,7 @@ class VerifyOTPView(APIView):
 
 
 class ResendOTPView(APIView):
-    @method_decorator(ratelimit(key="ip", rate="5/m", block=True))
+    # @method_decorator(ratelimit(key="ip", rate="5/m", block=True))
     def post(self, request):
         email = request.data.get("email")
         print(email)
@@ -166,7 +166,7 @@ class RequestPasswordResetView(APIView):
             return Response({"error": "CustomUser with this email does not exist."}, status=status.HTTP_404_NOT_FOUND)
         
 class ResetPasswordView(APIView):
-    @method_decorator(ratelimit(key="ip", rate="5/m", block=True))
+    # @method_decorator(ratelimit(key="ip", rate="5/m", block=True))
     def post(self, request):
         email = request.data.get("email")
         otp = request.data.get("otp")
