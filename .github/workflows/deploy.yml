@@ -25,22 +25,35 @@ jobs:
     - name: Deploy to Server
       run: |
         ssh -t ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
-        cd /var/www/mindshaft || git clone git@github.com:huzaifa003/mindshaft.git /var/www/mindshaft
+        # Navigate to /var/www and clone the repository if not already cloned
+        cd /var/www
+        if [ ! -d "mindshaft" ]; then
+            git clone git@github.com:huzaifa003/mindshaft.git
+        else
+            cd mindshaft
+            git pull origin main
+        fi
+
+        # Navigate to the cloned repo
         cd /var/www/mindshaft
-        git pull origin main
-        
-        # Set up virtual environment and install dependencies
-        python3 -m venv venv
+
+        # Create virtual environment if it doesn't exist
+        if [ ! -d "venv" ]; then
+            python3 -m venv venv
+        fi
         source venv/bin/activate
+
+        # Install dependencies
         pip install -r requirements.txt
-        
+
+        # Navigate to the folder containing manage.py
+        cd /var/www/mindshaft/mindshaft
+
         # Run migrations and collect static files
         python manage.py migrate
         python manage.py collectstatic --noinput
-        
-        # Restart Gunicorn
-        sudo systemctl restart mindshaft-gunicorn
 
-        # Reload Nginx
+        # Restart Gunicorn and Nginx
+        sudo systemctl restart mindshaft-gunicorn
         sudo systemctl reload nginx
         EOF
