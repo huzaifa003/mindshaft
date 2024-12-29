@@ -18,9 +18,13 @@ jobs:
       with:
         ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
+    - name: Add server to known_hosts
+      run: |
+        ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
+
     - name: Deploy to Server
       run: |
-        ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+        ssh -t ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
         cd /var/www/mindshaft || git clone git@github.com:huzaifa003/mindshaft.git /var/www/mindshaft
         cd /var/www/mindshaft
         git pull origin main
