@@ -56,7 +56,7 @@ class ChatMessagesView(APIView):
         return Response(serializer.data)
 
 
-@method_decorator(email_verified_required, name='dispatch')
+# @method_decorator(email_verified_required, name='dispatch')
 class CreateChatView(APIView):
     """
     View to create a new chat with the logged-in user as the owner.
@@ -84,7 +84,7 @@ class CreateChatView(APIView):
         return Response(serializer.errors, status=400)
 
 
-@method_decorator(email_verified_required, name='dispatch')
+# @method_decorator(email_verified_required, name='dispatch')
 class AddMessageView(APIView):
     """
     View to add a message to a chat owned by the logged-in user and generate an AI response.
@@ -213,7 +213,7 @@ Therapist:"""
     
 
 
-@method_decorator(email_verified_required, name='dispatch')
+# @method_decorator(email_verified_required, name='dispatch')
 class DeleteChatView(APIView):
     """
     View to delete a chat owned by the logged-in user.

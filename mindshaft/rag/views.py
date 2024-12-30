@@ -170,7 +170,7 @@ class DocumentDeleteView(APIView):
             ingestion_status.save()
 
 
-@method_decorator(email_verified_required, name='dispatch')
+#@method_decorator(email_verified_required, name='dispatch')
 class DocumentsListView(APIView):
     """
     View to list all documents.
