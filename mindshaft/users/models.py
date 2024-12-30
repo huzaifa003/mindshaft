@@ -31,6 +31,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(auto_now_add=True)
+    email_verified = models.BooleanField(default=False)
 
     # Subscription details
     is_premium = models.BooleanField(default=False)  # True if subscribed
@@ -53,3 +54,26 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.email
+
+
+
+class OTP(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="otps")
+    otp = models.CharField(max_length=6)
+    purpose = models.CharField(max_length=50, default="email_verification")
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+
+    def is_valid(self):
+        return now() < self.expires_at
+    
+class PasswordResetOTP(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="reset_otps")
+    otp = models.CharField(max_length=6)  # OTP is a 6-digit numeric code
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+
+    def is_valid(self):
+        """Check if the OTP is still valid."""
+        return self.expires_at > now()
+    

@@ -26,14 +26,17 @@ SECRET_KEY = config('SECRET')
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 
-ALLOWED_HOSTS = ['145.223.101.34', 'localhost', '127.0.0.1']
 
 # CORS settings
-CORS_ALLOWED_ORIGINS = ['http://localhost:5173', 'http://127.0.0.1:5173', 'http://145.223.101.34']
-# CORS_ALLOW_CREDENTIALS = True  # Allows cookies and headers like Authorization
+ALLOWED_HOSTS = ['api.mindhush.ai', 'www.api.mindhush.ai', '145.223.101.34', 'localhost', 'localhost:5173', '127.0.0.1']
+# CORS_ALLOWED_ORIGINS = ['api.mindhush.ai', 'www.api.mindhush.ai', '145.223.101.34', 'localhost', 'localhost:5173', '127.0.0.1']
+
+CORS_ALLOW_ALL_ORIGINS = True
+
+CORS_ALLOW_CREDENTIALS = True  # Allows cookies and headers like Authorization
 
 
 # Application definition
@@ -216,6 +219,17 @@ STRIPE_WEBHOOK_SECRET = config('STRIPE_WEBHOOK_SECRET')
 STRIPE_SUCCESS_URL = config('STRIPE_SUCCESS_URL')
 STRIPE_FAILURE_URL = config('STRIPE_FAILURE_URL')
 STRIPE_CANCEL_URL = config('STRIPE_CANCEL_URL')
+
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = str(config("EMAIL_HOST", default="smtp.gmail.com"))
+EMAIL_PORT = int(config("EMAIL_PORT", default=587))
+EMAIL_USE_TLS = bool(config("EMAIL_USE_TLS", default=True))
+EMAIL_HOST_USER = str(config("EMAIL_HOST_USER"))
+EMAIL_HOST_PASSWORD = str(config("EMAIL_HOST_PASSWORD"))
+DEFAULT_FROM_EMAIL = str(
+    config("DEFAULT_FROM_EMAIL", default="Your App <your-email@gmail.com>")
+)
+
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 

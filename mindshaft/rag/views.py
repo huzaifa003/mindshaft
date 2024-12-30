@@ -10,6 +10,10 @@ import os
 from django.conf import settings
 from django.core.files import File
 
+from users.decorators import email_verified_required
+from django.utils.decorators import method_decorator
+
+
 CHROMA_DB_DIR = os.path.join(settings.BASE_DIR, 'rag', 'chroma_db')
 
 class DocumentUploadView(APIView):
@@ -166,12 +170,13 @@ class DocumentDeleteView(APIView):
             ingestion_status.save()
 
 
+#@method_decorator(email_verified_required, name='dispatch')
 class DocumentsListView(APIView):
     """
     View to list all documents.
     """
     permission_classes = [IsAuthenticated]
-
+    
     def get(self, request):
         documents = Document.objects.all()
         serializer = DocumentSerializer(documents, many=True)

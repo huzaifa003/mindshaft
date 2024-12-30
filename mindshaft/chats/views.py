@@ -14,9 +14,15 @@ from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
 from langchain.chat_models import ChatOpenAI
 import os
+
+
+from users.decorators import email_verified_required
+from django.utils.decorators import method_decorator
 # Chroma DB Directory
 CHROMA_DB_DIR = os.path.join(settings.BASE_DIR, 'rag', 'chroma_db')
 os.environ["OPENAI_API_KEY"]=settings.OPENAI_API_KEY
+
+
 
 class UserChatsView(APIView):
     """
@@ -29,6 +35,7 @@ class UserChatsView(APIView):
         chats = user.get_all_user_chats()
         serializer = ChatSerializer(chats, many=True)
         return Response(serializer.data)
+
 
 
 class ChatMessagesView(APIView):
@@ -49,6 +56,7 @@ class ChatMessagesView(APIView):
         return Response(serializer.data)
 
 
+# @method_decorator(email_verified_required, name='dispatch')
 class CreateChatView(APIView):
     """
     View to create a new chat with the logged-in user as the owner.
@@ -76,6 +84,7 @@ class CreateChatView(APIView):
         return Response(serializer.errors, status=400)
 
 
+# @method_decorator(email_verified_required, name='dispatch')
 class AddMessageView(APIView):
     """
     View to add a message to a chat owned by the logged-in user and generate an AI response.
@@ -204,6 +213,7 @@ Therapist:"""
     
 
 
+# @method_decorator(email_verified_required, name='dispatch')
 class DeleteChatView(APIView):
     """
     View to delete a chat owned by the logged-in user.
