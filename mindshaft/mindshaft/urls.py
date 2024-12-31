@@ -23,7 +23,7 @@ urlpatterns = [
     path("api/users/", include("users.urls")),  # Include URLs from the users app
     path("api/chats/", include("chats.urls")),  # Include URLs from the chats app
     path('api/rag/', include('rag.urls')),  # Include URLs from the rag app
-
+    path('api/blogs/', include('blogs.urls')),
     path('api/billing/', include('billing.urls')),
 ]
 if settings.DEBUG:
