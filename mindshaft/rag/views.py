@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from .models import Document, IngestionStatus
 from .serializers import DocumentSerializer
-from .utils import ingest_documents
+from .utils import ingest_documents, ingest_document
 from langchain_chroma import Chroma
 import os
 from django.conf import settings
@@ -45,8 +45,11 @@ class DocumentUploadView(APIView):
             documents.append(document)
 
         # Start the ingestion process
-        self.run_ingestion()
-
+        try:
+            for document in documents:
+                ingest_document(document)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response({'message': 'Documents uploaded successfully. Ingestion completed.'}, status=status.HTTP_201_CREATED)
 
 

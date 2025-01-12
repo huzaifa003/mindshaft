@@ -53,6 +53,20 @@ def process_document(doc):
     except Exception as e:
         print(f"Error processing document ID {doc.id}: {e}")
         return []
+    
+def ingest_document(doc):
+    """
+    Process a single document: extract text, split into pages, and add metadata.
+    """
+    try:
+        processed_pages = process_document(doc)
+        add_documents_to_chroma(processed_pages)
+        print(f"Added {len(processed_pages)} chunks to Chroma DB.")
+        return True
+    except Exception as e:
+        print(f"Error processing document ID {doc.id}: {e}")
+        return False
+    
 
 def ingest_documents(max_threads=4):
     """
