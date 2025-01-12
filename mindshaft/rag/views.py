@@ -136,9 +136,9 @@ class DocumentDeleteView(APIView):
 
     def delete(self, request, pk):
         # Check if ingestion is in progress
-        ingestion_status = IngestionStatus.get_status()
-        if ingestion_status.is_ingesting:
-            return Response({'error': 'Ingestion is in progress. Please wait until it completes.'}, status=status.HTTP_400_BAD_REQUEST)
+        # ingestion_status = IngestionStatus.get_status()
+        # if ingestion_status.is_ingesting:
+        #     return Response({'error': 'Ingestion is in progress. Please wait until it completes.'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             document = Document.objects.get(pk=pk)
