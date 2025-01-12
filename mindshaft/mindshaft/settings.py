@@ -230,6 +230,8 @@ DEFAULT_FROM_EMAIL = str(
     config("DEFAULT_FROM_EMAIL", default="Your App <your-email@gmail.com>")
 )
 
+SUICIDAL_THOUGHTS_LINK=config('SUICIDAL_THOUGHTS_LINK')
+
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 

@@ -153,6 +153,8 @@ class AddMessageView(APIView):
         Generate an AI response using LangChain's RunnableSequence with ChatOpenAI.
         """
         try:
+            link = str(settings.SUICIDAL_THOUGHTS_LINK)
+            
             # Initialize the OpenAI Chat model
             chat_model = ChatOpenAI(
                 temperature=0.1,
@@ -168,10 +170,12 @@ class AddMessageView(APIView):
 
             # Define the prompt template
             prompt_template = PromptTemplate(
-                input_variables=["context", "history", "user_message"],
+                input_variables=["link", "context", "history", "user_message"],
                 template="""
-You are a compassionate mental health professional helping a client. Do not suggest any medicines.
-Use the following context to inform your response, if relevant:
+You are a compassionate mental health companian helping a client. Do not suggest any medicines.
+Incase the user is having suicidal thoughts direct them to our link for support {link}. Make sure to mention the link in case of any suicidal thoughts ONLY and ensure correctioness of the link.
+Incase the user asks who are you? respond with "I am a compassionate mental health companion helping you with your mental health."
+Use the following context to inform your response, if relevant to the conversation, otherwise ignore it:
 
 {context}
 
@@ -189,6 +193,7 @@ Therapist:"""
 
             # Run the chain with the provided inputs
             inputs = {
+                "link": link,
                 "context": context,
                 "history": history,
                 "user_message": user_message
