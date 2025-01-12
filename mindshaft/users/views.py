@@ -1,3 +1,5 @@
+import csv
+from django.http import HttpResponse
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -26,6 +28,36 @@ from django.utils.decorators import method_decorator
 
 from django.utils.timezone import now
 from datetime import timedelta
+
+class UserEmailsView(APIView):
+    """
+    Gets All Users Emails as List.
+    """
+    def get(self, request, *args, **kwargs):
+        users = CustomUser.objects.all()
+        emails = [user.email for user in users]
+        return Response(emails)
+    
+
+class ExportUserEmailsCSVView(APIView):
+    """
+    Exports all user emails as a CSV file.
+    """
+    def get(self, request, *args, **kwargs):
+        # Create a response object with CSV content type
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="user_emails.csv"'
+
+        # Create a CSV writer
+        writer = csv.writer(response)
+        writer.writerow(['Email'])  # Add CSV header
+
+        # Fetch all user emails and write them to CSV
+        users = CustomUser.objects.all().values_list('email', flat=True)
+        for email in users:
+            writer.writerow([email])
+
+        return response
 
 
 class UserRegistrationView(CreateAPIView):

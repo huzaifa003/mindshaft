@@ -1,7 +1,25 @@
 from django.urls import path
-from .views import UserRegistrationView, UserLoginView, UserLogoutView, UserProfileView, VerifyOTPView, ResendOTPView, ResetPasswordView, RequestPasswordResetView
+from .views import (
+    UserEmailsView,
+    ExportUserEmailsCSVView,
+
+    UserRegistrationView,
+    UserLoginView,
+    UserLogoutView,
+
+    UserProfileView,
+
+    VerifyOTPView,
+    ResendOTPView,
+    
+    ResetPasswordView,
+    RequestPasswordResetView,
+) 
 
 urlpatterns = [
+    path('emails/', UserEmailsView.as_view(), name='user-emails'),
+    path('emails/csv/', ExportUserEmailsCSVView.as_view(), name='export-user-emails-csv'),
+
     path('register/', UserRegistrationView.as_view(), name='user-register'),
 
     path("verify-otp/", VerifyOTPView.as_view(), name="verify_otp"),
