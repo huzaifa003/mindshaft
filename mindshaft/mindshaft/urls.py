@@ -25,6 +25,9 @@ urlpatterns = [
     path('api/rag/', include('rag.urls')),  # Include URLs from the rag app
     path('api/blogs/', include('blogs.urls')),
     path('api/billing/', include('billing.urls')),
+
+    path('api/feedback/', include('feedback.urls')),
+    path('api/report/', include('report.urls')),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
