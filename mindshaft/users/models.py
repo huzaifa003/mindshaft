@@ -48,7 +48,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     REQUIRED_FIELDS = []
 
     def reset_daily_limit(self):
-        """Resets daily limit if the date has changed."""
+        """Resets daily limit if the date has changed or cooldown period has expired"""
         if self.reset_cooldown:
             if self.reset_cooldown > now():
                 self.credits_used_today = 0

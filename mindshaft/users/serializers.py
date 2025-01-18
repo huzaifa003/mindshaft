@@ -36,8 +36,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
     """
     class Meta:
         model = CustomUser
-        fields = ['id', 'email', 'first_name', 'last_name', 'date_joined', 'credits_used_today', 'total_credits_used', 'daily_limit', 'is_premium', 'last_reset_date', 'email_verified']
-        read_only_fields = ['email', 'date_joined', 'id', 'credits_used_today', 'total_credits_used', 'daily_limit', 'is_premium', 'last_reset_date', 'email_verified']
+        fields = ['id', 'email', 'first_name', 'last_name', 'date_joined', 'credits_used_today', 'total_credits_used', 'daily_limit', 'is_premium', 'last_reset_date', 'email_verified', 'reset_cooldown']
+        read_only_fields = ['email', 'date_joined', 'id', 'credits_used_today', 'total_credits_used', 'daily_limit', 'is_premium', 'last_reset_date', 'email_verified', 'reset_cooldown']
 
 
 class CustomUserSerializer(serializers.ModelSerializer):
