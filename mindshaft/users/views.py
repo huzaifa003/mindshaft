@@ -129,10 +129,6 @@ class UserProfileView(RetrieveUpdateAPIView):
         return self.request.user
 
 
-
-
-
-
 class VerifyOTPView(APIView):
     def post(self, request):
         email = request.data.get("email")

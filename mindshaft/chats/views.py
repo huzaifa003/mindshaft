@@ -84,6 +84,19 @@ class CreateChatView(APIView):
         return Response(serializer.errors, status=400)
 
 
+class RenameChatView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, chat_id, *args, **kwargs):
+        chat = get_object_or_404(Chat, id=chat_id)
+        new_name = request.data.get('name')
+        if not new_name:
+            return Response({"error": "Chat name is required."}, status=status.HTTP_400_BAD_REQUEST)
+        chat.name = new_name
+        chat.save()
+        return Response({"message": "Chat renamed successfully."}, status=status.HTTP_200_OK)
+    
+
 # @method_decorator(email_verified_required, name='dispatch')
 class AddMessageView(APIView):
     """

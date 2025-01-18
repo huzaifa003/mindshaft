@@ -5,10 +5,12 @@ from .views import (
     ChatMessagesView,
     AddMessageView,
     DeleteChatView,
+    RenameChatView,
 )
 
 urlpatterns = [
     path('create/', CreateChatView.as_view(), name='create-chat'),
+    path('<int:chat_id>/rename/', RenameChatView.as_view(), name='rename-chat'),
     path('delete/', DeleteChatView.as_view(), name='delete-chat'),
     path('user/', UserChatsView.as_view(), name='user-chats'),
     path('<int:chat_id>/messages/', ChatMessagesView.as_view(), name='chat-messages'),

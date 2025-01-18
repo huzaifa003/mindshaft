@@ -40,6 +40,8 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     total_credits_used = models.PositiveIntegerField(default=0)
     last_reset_date = models.DateField(default=now)
 
+    reset_cooldown = models.DateTimeField(null=True, default=None)
+
     objects = CustomUserManager()
 
     USERNAME_FIELD = 'email'
@@ -47,7 +49,14 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     def reset_daily_limit(self):
         """Resets daily limit if the date has changed."""
-        if self.last_reset_date != now().date():
+        if self.reset_cooldown:
+            if self.reset_cooldown > now():
+                self.credits_used_today = 0
+                self.last_reset_date = now().date()
+                self.reset_cooldown = None
+                self.save()
+        
+        elif self.last_reset_date != now().date():
             self.credits_used_today = 0
             self.last_reset_date = now().date()
             self.save()
