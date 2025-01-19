@@ -1,4 +1,6 @@
 import csv
+import requests
+
 from django.http import HttpResponse
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -101,6 +103,66 @@ class UserLoginView(APIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
+class GoogleAuthView(APIView):
+    permission_classes = []
+
+    def post(self, request):
+        id_token = request.data.get("id_token")
+        if not id_token:
+            return Response({"error": "Missing id_token"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user_data = None
+            try:
+                
+                response = requests.get(f"https://oauth2.googleapis.com/tokeninfo?id_token={id_token}")
+                user_data = response.json()
+                # print(user_data)
+                # print(response)
+            except Exception as e:
+                print(f"Error retrieving user data from Google: {str(e)}")
+                return Response({"error": "Failed to retrieve user data from Google."}, status=status.HTTP_400_BAD_REQUEST)
+            
+            user_email = user_data.get("email")
+            user_name = user_data.get("name", "")
+            
+
+            if not user_email:
+                return Response({"error": "Google response did not contain an email."}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Check if user already exists
+            user , created = CustomUser.objects.get_or_create(
+                email=user_email,
+                defaults={
+                    "first_name": user_name,
+                    "provider": "google",
+                    "email_verified": True,  # Mark as verified since it's from Google
+                }
+            )
+
+            if not created:  # Existing user
+                # Ensure provider is updated if necessary
+                if user.provider != "google":
+                    user.provider = "google"
+                    user.save()
+
+            # Generate JWT tokens
+            refresh = RefreshToken.for_user(user)
+            return Response({
+                "refresh": str(refresh),
+                "access": str(refresh.access_token),
+                "user": {
+                    "email": user.email,
+                    "first_name": user.first_name,
+                    "email_verified": user.email_verified,
+                    "provider": user.provider,
+                }
+            }, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
 
 class UserLogoutView(APIView):
     """

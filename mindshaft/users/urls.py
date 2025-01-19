@@ -5,6 +5,7 @@ from .views import (
 
     UserRegistrationView,
     UserLoginView,
+    GoogleAuthView,
     UserLogoutView,
 
     UserProfileView,
@@ -28,6 +29,7 @@ urlpatterns = [
     path("request-password-reset/", RequestPasswordResetView.as_view(), name="request_password_reset"),
     
     path('login/', UserLoginView.as_view(), name='user-login'),
+    path('google-auth/', GoogleAuthView.as_view(), name='google-auth'),
     
     path('logout/', UserLogoutView.as_view(), name='user-logout'),
     path('profile/', UserProfileView.as_view(), name='user-profile'),

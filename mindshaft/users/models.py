@@ -33,6 +33,8 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     date_joined = models.DateTimeField(auto_now_add=True)
     email_verified = models.BooleanField(default=False)
 
+    provider = models.CharField(max_length=255, null=True, blank=True, default="email")
+
     # Subscription details
     is_premium = models.BooleanField(default=False)  # True if subscribed
     daily_limit = models.PositiveIntegerField(default=10000)  # Default daily credits
