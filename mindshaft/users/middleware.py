@@ -23,13 +23,14 @@ class ResetDailyLimitMiddleware:
                         logger.info(f"Cooldown set for user {user.email}: {user.reset_cooldown}")
                         user.save()
 
-            logger.info(f"Middleware invoked for user {request.user.email}")
-            print(request.user.credits_used_today)
-            if request.user.last_reset_date != now().date():
-                logger.info(f"Resetting daily limit for user {request.user.email}")
-                request.user.credits_used_today = 0
-                request.user.last_reset_date = now().date()
-                request.user.save()  # Save the changes
+                logger.info(f"Middleware invoked for user {request.user.email}")
+                print(request.user.credits_used_today)
+                if not user.reset_cooldown:
+                    if request.user.last_reset_date != now().date():
+                        logger.info(f"Resetting daily limit for user {request.user.email}")
+                        request.user.credits_used_today = 0
+                        request.user.last_reset_date = now().date()
+                        request.user.save()  # Save the changes
 
         else: 
             logger.info("Middleware invoked for anonymous user")

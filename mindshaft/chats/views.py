@@ -13,6 +13,10 @@ from langchain.llms import OpenAI
 from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
 from langchain.chat_models import ChatOpenAI
+
+from django.utils.timezone import now
+from datetime import timedelta
+
 import os
 
 
@@ -118,6 +122,9 @@ class AddMessageView(APIView):
         userObj = request.user
         
         if not userObj.is_premium and userObj.credits_used_today >= userObj.daily_limit:
+            if not userObj.reset_cooldown:
+                userObj.reset_cooldown = now() + timedelta(hours=24)
+                userObj.save()
             return Response({'error': 'You have reached your daily limit.'}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = MessageSerializer(data=message_data)

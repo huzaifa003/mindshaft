@@ -41,7 +41,9 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     last_reset_date = models.DateField(default=now)
 
     reset_cooldown = models.DateTimeField(null=True, default=None)
+    subscription_type = models.CharField(max_length=50, default="free")
 
+    
     objects = CustomUserManager()
 
     USERNAME_FIELD = 'email'
@@ -50,13 +52,20 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     def reset_daily_limit(self):
         """Resets daily limit if the date has changed or cooldown period has expired"""
         if self.reset_cooldown:
-            if self.reset_cooldown > now():
+            print("Checking reset cooldown...")
+            now_time = now()
+            # print (self.reset_cooldown)
+            # print(now_time)
+            # print(self.reset_cooldown < now_time)
+            if self.reset_cooldown < now_time:
+                print("Reset cooldown expired. Resetting daily limit.")
                 self.credits_used_today = 0
                 self.last_reset_date = now().date()
                 self.reset_cooldown = None
                 self.save()
         
-        elif self.last_reset_date != now().date():
+        elif self.reset_cooldown is None and self.last_reset_date != now().date():
+            print("Date has changed. Resetting daily limit.")
             self.credits_used_today = 0
             self.last_reset_date = now().date()
             self.save()

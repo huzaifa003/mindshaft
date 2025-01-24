@@ -44,6 +44,35 @@ class CreateCheckoutSessionView(APIView):
             return Response({'error': str(e)}, status=400)
 
 
+class CreateYearlyCheckoutSessionView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        
+        user = request.user
+        stripe_customer, created = StripeCustomer.objects.get_or_create(user=user)
+        try:
+            # Create a Stripe customer if not already exists
+            if created or not stripe_customer.stripe_customer_id:
+                customer = stripe.Customer.create(email=user.email)
+                stripe_customer.stripe_customer_id = customer['id']
+                stripe_customer.save()
+
+            # Create a Stripe Checkout session
+            checkout_session = stripe.checkout.Session.create(
+                customer=stripe_customer.stripe_customer_id,
+                payment_method_types=['card'],
+                line_items=[{'price': 'price_1QidIRKbqgiOLixU11MRxyRV', 'quantity': 1}],
+                mode='subscription',
+                success_url=settings.STRIPE_SUCCESS_URL,
+                cancel_url=settings.STRIPE_CANCEL_URL
+            )
+            return Response({'url': checkout_session.url})
+        except Exception as e:
+            stripe_customer.delete()
+            return Response({'error': str(e)}, status=400)
+        
+
 class CancelSubscriptionView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -115,6 +144,18 @@ class StripeWebhookView(APIView):
         customer_id = session.get('customer')
         subscription_id = session.get('subscription')
 
+        subscription = stripe.Subscription.retrieve(subscription_id)
+        price_id = subscription['items']['data'][0]['price']['id']  # Retrieve the price ID
+        
+        subscription_type = None
+        if price_id == 'price_1QZSQqKbqgiOLixUfdRFtnW6':  # Monthly price ID
+            subscription_type = 'monthly'
+        elif price_id == 'price_1QidIRKbqgiOLixU11MRxyRV':  # Yearly price ID
+            subscription_type = 'yearly'
+        else:
+            logger.error(f"Unknown price ID: {price_id}")
+        
+        
         if not customer_id or not subscription_id:
             logger.error("Missing customer_id or subscription_id in event data.")
             return
@@ -126,6 +167,7 @@ class StripeWebhookView(APIView):
 
             # Update user's premium status
             user = stripe_customer.user
+            user.subscription_type = subscription_type
             user.is_premium = True
             user.save()
         except StripeCustomer.DoesNotExist:

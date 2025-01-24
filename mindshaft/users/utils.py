@@ -1,7 +1,19 @@
-def consume_credits(user, credits):
+from .models import CustomUser
+import random
+from django.core.mail import send_mail
+from django.conf import settings
+from users.models import CustomUser, PasswordResetOTP
+from django.utils.timezone import now
+from datetime import timedelta
+
+def consume_credits(user : CustomUser, credits):
     try:
         user.reset_daily_limit()  # Ensure daily limit is up to date
         if not user.is_premium and user.credits_used_today + credits > user.daily_limit:
+            user.reset_cooldown = now() + timedelta(hours=24)
+            user.credits_used_today += credits
+            user.save()
+
             raise ValueError("Daily credit limit exceeded.")
         
         user.credits_used_today += credits
@@ -15,12 +27,7 @@ def consume_credits(user, credits):
 
 
 
-import random
-from django.core.mail import send_mail
-from django.conf import settings
-from users.models import CustomUser, PasswordResetOTP
-from django.utils.timezone import now
-from datetime import timedelta
+
 
 
 
