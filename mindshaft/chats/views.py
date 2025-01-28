@@ -55,7 +55,7 @@ class ChatMessagesView(APIView):
         if not chat.participants.filter(user=request.user).exists():
             return Response({"error": "You are not a participant of this chat."}, status=403)
 
-        messages = chat.get_all_messages()
+        messages = Message.objects.filter(chat=chat).order_by("created_at")
         serializer = MessageSerializer(messages, many=True)
         return Response(serializer.data)
 
