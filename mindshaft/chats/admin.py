@@ -7,20 +7,28 @@ from .models import Chat, Message, ChatParticipant
 #     fields = ('user', 'content', 'created_at', 'is_system_message')
 #     readonly_fields = ('created_at',)
 
-class ChatParticipantInline(admin.TabularInline):
-    model = ChatParticipant
-    extra = 1  # Number of empty fields to display for new participants
-    fields = ('user', 'joined_at')
-    readonly_fields = ('joined_at',)
+# class ChatParticipantInline(admin.TabularInline):
+#     model = ChatParticipant
+#     extra = 1  # Number of empty fields to display for new participants
+#     fields = ('user', 'joined_at')
+#     readonly_fields = ('joined_at',)
+
+# @admin.register(Chat)
+# class ChatAdmin(admin.ModelAdmin):
+#     list_display = ('id', 'name', 'user', 'created_at', 'updated_at')
+#     search_fields = ('name', 'user__username')  # Assuming 'username' exists in your user model
+#     list_filter = ('created_at', 'updated_at')
+#     # inlines = [MessageInline, ChatParticipantInline]
+#     inlines = [ChatParticipantInline]
+#     ordering = ('-created_at',)
 
 @admin.register(Chat)
 class ChatAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'user', 'created_at', 'updated_at')
-    search_fields = ('name', 'user__username')  # Assuming 'username' exists in your user model
+    list_display = ('id', 'name', 'created_at', 'updated_at')
+    search_fields = ('name',)  # Corrected: Use a tuple
     list_filter = ('created_at', 'updated_at')
-    # inlines = [MessageInline, ChatParticipantInline]
-    inlines = [ChatParticipantInline]
     ordering = ('-created_at',)
+    readonly_fields = ('created_at', 'updated_at')  # Corrected: Added readonly fields
 
 # @admin.register(Message)
 # class MessageAdmin(admin.ModelAdmin):
@@ -29,9 +37,9 @@ class ChatAdmin(admin.ModelAdmin):
 #     list_filter = ('created_at', 'is_system_message')
 #     ordering = ('-created_at',)
 
-@admin.register(ChatParticipant)
-class ChatParticipantAdmin(admin.ModelAdmin):
-    list_display = ('id', 'chat', 'user', 'joined_at')
-    search_fields = ('chat__name', 'user__username')
-    list_filter = ('joined_at',)
-    ordering = ('-joined_at',)
+# @admin.register(ChatParticipant)
+# class ChatParticipantAdmin(admin.ModelAdmin):
+#     list_display = ('id', 'chat', 'user', 'joined_at')
+#     search_fields = ('chat__name', 'user__username')
+#     list_filter = ('joined_at',)
+#     ordering = ('-joined_at',)
