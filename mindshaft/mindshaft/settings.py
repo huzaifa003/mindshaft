@@ -198,8 +198,8 @@ AUTH_PASSWORD_VALIDATORS = [
 
 required_env_vars = ['DB_NAME', 'DB_USER', 'DB_PASSWORD', 'DB_HOST', 'DB_PORT', 'OPENAI_API_KEY', 'STRIPE_SECRET_KEY', 'STRIPE_PUBLISHABLE_KEY', 'STRIPE_WEBHOOK_SECRET', 'STRIPE_SUCCESS_URL', 'STRIPE_FAILURE_URL', 'STRIPE_CANCEL_URL']
 for var in required_env_vars:
-    print(f"Checking for environment variable: {var}")
-    print(f"Value: {config(var)}")
+    # print(f"Checking for environment variable: {var}")
+    # print(f"Value: {config(var)}")
     if not config(var):  # Or os.environ.get(var)
         raise EnvironmentError(f"Missing required environment variable: {var}")
 
