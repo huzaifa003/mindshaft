@@ -179,7 +179,7 @@ class AddMessageView(APIView):
             chat_model = ChatOpenAI(
                 temperature=0.1,
                 openai_api_key=settings.OPENAI_API_KEY,
-                model="gpt-4o-mini"
+                model="ft:gpt-4o-2024-08-06:mindhush-ai:airatrain1:AwYdMbdg"
             )
 
             # Check if Chroma DB exists and get context if available
