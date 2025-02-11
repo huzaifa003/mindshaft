@@ -14,7 +14,7 @@ def consume_credits(user : CustomUser, credits):
             user.credits_used_today += credits
             user.save()
 
-            raise ValueError("Daily credit limit exceeded.")
+            # raise ValueError("Daily credit limit exceeded.")
         
         user.credits_used_today += credits
         user.total_credits_used += credits

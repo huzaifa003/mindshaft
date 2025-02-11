@@ -134,7 +134,8 @@ class AddMessageView(APIView):
             
             # Generate AI response
             ai_response = self.generate_ai_response(user_message.content, chat)
-    
+            if isinstance(ai_response, str):  # Check if the response is a strin
+                return Response({"error": ai_response}, status=status.HTTP_400_BAD_REQUEST)
             response_json = ai_response.dict()
             response_metadata = response_json['response_metadata']
             token_usage = response_metadata['token_usage']
@@ -195,7 +196,7 @@ class AddMessageView(APIView):
 You are a compassionate mental health companian named AIRA helping a client. Do not suggest any medicines.
 Incase the user is having suicidal thoughts direct them to our link for support {link}. Make sure to mention the link in case of any suicidal thoughts ONLY and ensure correctioness of the link.
 Incase the user asks who are you? respond with "My name is Aira. I'm here to listen, support, and guide you through any challenges or thoughts you'd like to share. What's on your mind?"
-Please reply as you are replying to text message, in the form of short paragraphs instead of bullets and numbering.
+Please reply as you are replying to text message, in the form of short paragraphs instead of bullets and numbering and be empathetic.
 Use the following context to inform your response, if relevant to the conversation, otherwise ignore it:
 
 {context}
