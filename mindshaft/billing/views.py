@@ -33,7 +33,8 @@ class CreateCheckoutSessionView(APIView):
             checkout_session = stripe.checkout.Session.create(
                 customer=stripe_customer.stripe_customer_id,
                 payment_method_types=['card'],
-                line_items=[{'price': 'price_1QZSQqKbqgiOLixUfdRFtnW6', 'quantity': 1}],
+                # line_items=[{'price': 'price_1QZSQqKbqgiOLixUfdRFtnW6', 'quantity': 1}],
+                line_items=[{'price': 'price_1QrNaXKbqgiOLixUwPpvrcLb', 'quantity': 1}],
                 mode='subscription',
                 success_url=settings.STRIPE_SUCCESS_URL,
                 cancel_url=settings.STRIPE_CANCEL_URL
@@ -62,7 +63,8 @@ class CreateYearlyCheckoutSessionView(APIView):
             checkout_session = stripe.checkout.Session.create(
                 customer=stripe_customer.stripe_customer_id,
                 payment_method_types=['card'],
-                line_items=[{'price': 'price_1QidIRKbqgiOLixU11MRxyRV', 'quantity': 1}],
+                # line_items=[{'price': 'price_1QidIRKbqgiOLixU11MRxyRV', 'quantity': 1}],
+                line_items=[{'price': 'price_1QrNaRKbqgiOLixUSi9N6hX3', 'quantity': 1}],
                 mode='subscription',
                 success_url=settings.STRIPE_SUCCESS_URL,
                 cancel_url=settings.STRIPE_CANCEL_URL
