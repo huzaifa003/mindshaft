@@ -150,9 +150,9 @@ class StripeWebhookView(APIView):
         price_id = subscription['items']['data'][0]['price']['id']  # Retrieve the price ID
         
         subscription_type = None
-        if price_id == 'price_1QZSQqKbqgiOLixUfdRFtnW6':  # Monthly price ID
+        if price_id == 'price_1QrNaXKbqgiOLixUwPpvrcLb':  # Monthly price ID
             subscription_type = 'monthly'
-        elif price_id == 'price_1QidIRKbqgiOLixU11MRxyRV':  # Yearly price ID
+        elif price_id == 'price_1QrNaRKbqgiOLixUSi9N6hX3':  # Yearly price ID
             subscription_type = 'yearly'
         else:
             logger.error(f"Unknown price ID: {price_id}")
