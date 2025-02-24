@@ -49,7 +49,7 @@ class CustomUserAdmin(UserAdmin):
     list_display = (
         'email', 'first_name', 'last_name', 'is_staff', 'is_active', 
         'is_premium', 'daily_limit', 'credits_used_today', 'total_credits_used', 
-        'last_reset_date', 'date_joined', 'subscription_type'  # Added here
+        'last_reset_date', 'date_joined', 'subscription_type', 'reset_cooldown'  # Added here
     )
     list_filter = ('is_staff', 'is_active', 'is_premium', 'subscription_type')  # Added subscription_type to filters
     search_fields = ('email', 'first_name', 'last_name', 'subscription_type')  # Allow searching by subscription type
@@ -62,6 +62,7 @@ class CustomUserAdmin(UserAdmin):
         ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser')}),
         ('Subscription', {'fields': ('is_premium', 'subscription_type', 'daily_limit', 'credits_used_today', 'total_credits_used', 'last_reset_date')}),  # Added subscription_type
         ('Timestamps', {'fields': ('date_joined',)}),
+        ('Misc', {'fields': ('reset_cooldown',)})
     )
 
     add_fieldsets = (
