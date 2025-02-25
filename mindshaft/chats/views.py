@@ -71,7 +71,7 @@ class CreateChatView(APIView):
         # Add the logged-in user as the owner of the chat
         chat_data = request.data.copy()
         chat_data['user'] = request.user.id  # Set the logged-in user as the chat owner
-        print(chat_data)
+        # print(chat_data)
         serializer = CreateChatSerializer(data=chat_data)
         if serializer.is_valid():
             chat = serializer.save(user=request.user)
@@ -221,11 +221,11 @@ Therapist:"""
                 "user_message": user_message
             }
             response = chain.invoke(inputs)
-            print(response)
+            # print(response)
             return response  # Ensure a clean response
         except Exception as e:
-            print(f"AI response generation error: {e}")
-            return "I'm sorry, but I'm unable to provide a response at this time."
+            # print(f"AI response generation error: {e}")
+            return "I'm sorry, but I'm unable to provide a response at this time." + str(e)
 
     def get_conversation_history(self, chat):
         """

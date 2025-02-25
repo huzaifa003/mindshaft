@@ -149,7 +149,7 @@ class StripeWebhookView(APIView):
         subscription = stripe.Subscription.retrieve(subscription_id)
         price_id = subscription['items']['data'][0]['price']['id']  # Retrieve the price ID
         
-        subscription_type = None
+        subscription_type = "monthly"
         if price_id == 'price_1QrNaXKbqgiOLixUwPpvrcLb':  # Monthly price ID
             subscription_type = 'monthly'
         elif price_id == 'price_1QrNaRKbqgiOLixUSi9N6hX3':  # Yearly price ID

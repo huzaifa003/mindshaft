@@ -132,7 +132,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "users.middleware.ResetDailyLimitMiddleware",
-    "users.middleware.DebugMiddleware",
+    # "users.middleware.DebugMiddleware",
 ]
 
 ROOT_URLCONF = "mindshaft.urls"
