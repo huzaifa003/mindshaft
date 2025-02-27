@@ -85,15 +85,19 @@ class CancelSubscriptionView(APIView):
             
             if not stripe_customer.stripe_subscription_id:
                 return Response({'error': 'User not subscribed'}, status=400)
-            if stripe_customer.stripe_subscription_id:
-                stripe.Subscription.delete(stripe_customer.stripe_subscription_id)
-                stripe_customer.stripe_subscription_id = None
-                stripe_customer.save()
 
-                # Mark the user as non-premium
-                user.is_premium = False
-                user.save()
-            return Response({'message': 'Subscription cancelled successfully'})
+            # Set subscription to cancel at the end of the current period
+            subscription = stripe.Subscription.modify(
+                stripe_customer.stripe_subscription_id,
+                cancel_at_period_end=True
+            )
+
+            # Optionally, you could store the cancellation time if you need to notify the user
+            stripe_customer.subscription_end_date = subscription.current_period_end
+            stripe_customer.save()
+
+            # Do not immediately change the premium status. The user remains premium until the period ends.
+            return Response({'message': 'Subscription will be cancelled at the end of the billing period'})
         except StripeCustomer.DoesNotExist:
             return Response({'error': 'User not subscribed'}, status=400)
         except Exception as e:

@@ -9,7 +9,7 @@ class StripeCustomer(models.Model):
     )
     stripe_customer_id = models.CharField(max_length=255, unique=True)
     stripe_subscription_id = models.CharField(max_length=255, blank=True, null=True)
-
+    subscription_end_date = models.DateTimeField(null=True, blank=True)
     def __str__(self):
         return f"{self.user.email} - {'Premium' if self.stripe_subscription_id else 'Free'}"
 
