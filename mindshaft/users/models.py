@@ -45,6 +45,8 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     reset_cooldown = models.DateTimeField(null=True, default=None)
     subscription_type = models.CharField(max_length=50, default="free")
 
+    subscription_end_date = models.DateTimeField(null=True, default=None)
+
     
     objects = CustomUserManager()
 

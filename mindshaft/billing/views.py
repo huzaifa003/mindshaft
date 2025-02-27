@@ -94,6 +94,8 @@ class CancelSubscriptionView(APIView):
 
             # Optionally, you could store the cancellation time if you need to notify the user
             stripe_customer.subscription_end_date = subscription.current_period_end
+            user.subscription_end_date = None
+            user.save()
             stripe_customer.save()
 
             # Do not immediately change the premium status. The user remains premium until the period ends.
@@ -218,6 +220,7 @@ class StripeWebhookView(APIView):
             # Update user's premium status
             user = stripe_customer.user
             user.is_premium = False
+            user.subscription_end_date = None
             user.save()
         except StripeCustomer.DoesNotExist:
             logger.error(f"StripeCustomer not found for subscription_id: {subscription_id}")
