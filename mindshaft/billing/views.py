@@ -1,4 +1,5 @@
 import stripe
+from datetime import datetime
 from django.conf import settings
 from django.urls import reverse
 from rest_framework.views import APIView
@@ -44,7 +45,48 @@ class CreateCheckoutSessionView(APIView):
             stripe_customer.delete()
             return Response({'error': str(e)}, status=400)
 
+class RenewSubscriptionView(APIView):
+    permission_classes = [IsAuthenticated]
 
+    def post(self, request, *args, **kwargs):
+        user = request.user
+        try:
+            stripe_customer = StripeCustomer.objects.get(user=user)
+            
+            if not stripe_customer.stripe_subscription_id:
+                return Response({'error': 'User not subscribed'}, status=400)
+
+            # Retrieve the current subscription details from Stripe
+            subscription = stripe.Subscription.retrieve(
+                stripe_customer.stripe_subscription_id
+            )
+
+            # Check if the subscription is set to cancel at period end
+            if not subscription.cancel_at_period_end:
+                return Response(
+                    {'message': 'Subscription is already active'},
+                    status=400
+                )
+
+            # Remove the cancellation flag to renew the subscription
+            subscription = stripe.Subscription.modify(
+                stripe_customer.stripe_subscription_id,
+                cancel_at_period_end=False
+            )
+
+            # Optionally update local records if you are storing cancellation info
+            stripe_customer.subscription_end_date = None
+            user.subscription_end_date = None
+            user.save()
+            stripe_customer.save()
+
+            return Response({'message': 'Subscription renewed successfully'})
+        except StripeCustomer.DoesNotExist:
+            return Response({'error': 'User not subscribed'}, status=400)
+        except Exception as e:
+            return Response({'error': str(e)}, status=400)
+
+            
 class CreateYearlyCheckoutSessionView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -93,8 +135,8 @@ class CancelSubscriptionView(APIView):
             )
 
             # Optionally, you could store the cancellation time if you need to notify the user
-            stripe_customer.subscription_end_date = subscription.current_period_end
-            user.subscription_end_date = None
+            stripe_customer.subscription_end_date = datetime.fromtimestamp(subscription.current_period_end)
+            user.subscription_end_date = stripe_customer.subscription_end_date
             user.save()
             stripe_customer.save()
 
