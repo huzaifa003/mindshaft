@@ -1,3 +1,4 @@
+import uuid
 from django.db import models
 from django.conf import settings  # Import AUTH_USER_MODEL dynamically
 # Attach the method to the custom user model dynamically
@@ -8,8 +9,9 @@ class Chat(models.Model):
     """
     Represents a chat session or thread.
     """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)  # UUID as PK
     user = models.ForeignKey(UserModel, related_name="owned_chats", on_delete=models.CASCADE)
-    name = models.CharField(max_length=255, blank=True, null=True)
+    name = models.CharField(max_length=254, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
