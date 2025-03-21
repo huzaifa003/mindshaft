@@ -129,3 +129,32 @@ def get_relevant_context(query):
     docs = vector_store.similarity_search(query, k=3)
     context = "\n".join([doc.page_content for doc in docs])
     return context
+
+def get_relevant_context_test(query):
+    """
+    Retrieve relevant context and document names from Chroma DB based on the user's message.
+    """
+    embeddings = OpenAIEmbeddings(openai_api_key=settings.OPENAI_API_KEY, model='text-embedding-ada-002')
+    vector_store = Chroma(
+        collection_name='documents',
+        persist_directory=CHROMA_DB_DIR,
+        embedding_function=embeddings
+    )
+    
+    docs = vector_store.similarity_search(query, k=3)
+    
+    # Extract document names and content
+    context_data = []
+    for doc in docs:
+        print(doc)
+        doc_name = doc.metadata.get("source", "Unknown Document")  # Adjust based on metadata keys
+        context_data.append(f"Document: {doc_name}\nContent: {doc.page_content}")
+        print(f"Document: {doc_name}\nContent: {doc.page_content}")
+    # Join contexts with a separator
+    context = "\n\n".join(context_data)
+    
+    return context
+
+
+
+print(get_relevant_context_test("Ji"))

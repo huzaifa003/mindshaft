@@ -145,9 +145,9 @@ class DocumentDeleteView(APIView):
             if not document:
                 return Response({'error': 'Document not found.'}, status=status.HTTP_404_NOT_FOUND)
 
-            # Start ingestion in a new thread
-            if not os.path.exists(CHROMA_DB_DIR):
-                self.run_ingestion()
+            # # Start ingestion in a new thread
+            # if not os.path.exists(CHROMA_DB_DIR):
+            #     self.run_ingestion()
 
             vector_store = Chroma(
                 collection_name='documents',
@@ -171,6 +171,31 @@ class DocumentDeleteView(APIView):
         finally:
             ingestion_status.is_ingesting = False
             ingestion_status.save()
+
+
+class DocumentVectorOnlyDeleteView(APIView):
+    def delete(self, request, pk):
+        try:
+            document = Document.objects.get(pk=pk)
+            
+
+            # # Start ingestion in a new thread
+            # if not os.path.exists(CHROMA_DB_DIR):
+            #     self.run_ingestion()
+
+            vector_store = Chroma(
+                collection_name='documents',
+                persist_directory=CHROMA_DB_DIR
+            )
+            vector_store.delete([str(pk)])
+
+            if os.path.exists(document.file.path):
+                os.remove(document.file.path)
+            if document:
+                document.delete()
+            return Response({'message': 'Document deleted from vector.'}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'error': 'Error in deleting.' + str(e)}, status=status.HTTP_404_NOT_FOUND)
 
 
 #@method_decorator(email_verified_required, name='dispatch')
