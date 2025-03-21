@@ -156,7 +156,3 @@ def get_relevant_context_test(query):
     context = "\n\n".join(context_data)
     
     return context
-
-
-
-get_relevant_context_test("Ji")
